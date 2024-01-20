@@ -20,10 +20,15 @@ def couper_video(video_path, chemin):
 
 
 
-
 def superposer(videosup, videoinf, chemin):
-    # Charger les vidéos
-    video1 = cv2.VideoCapture(videosup)
+    # Try opening the video capture using different backends
+    backends = [cv2.CAP_ANY, cv2.CAP_FFMPEG, cv2.CAP_V4L, cv2.CAP_VFW]
+    video1 = None
+    for backend in backends:
+        video1 = cv2.VideoCapture(videosup, backend)
+        if video1.isOpened():
+            break
+
     video2 = cv2.VideoCapture(videoinf)
 
     # Vérifier la validité des vidéos
@@ -36,8 +41,11 @@ def superposer(videosup, videoinf, chemin):
     frame_width = int(video1.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(video1.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-    # Créer un objet VideoWriter pour enregistrer la vidéo résultante
-    out = cv2.VideoWriter(f'{chemin}/video_superposee.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, (frame_width, frame_height*2))
+    # Récupérer le flux audio de la vidéo 1
+    audio1 = video1.get(cv2.CAP_PROP_FOURCC)
+
+    # Créer un objet VideoWriter pour enregistrer la vidéo résultante avec l'audio
+    out = cv2.VideoWriter(f'{chemin}/video_superposee.mp4', audio1, fps, (frame_width, frame_height*2))
 
     # Superposer les images des deux vidéos
     while True:
